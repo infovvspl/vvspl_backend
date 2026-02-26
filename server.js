@@ -43,4 +43,6 @@ app.post("/api/contact", async (req, res) => {
     }
 });
 
-app.listen(3001, () => console.log("API running on :3001"));
+app.listen(3001, "0.0.0.0", () => {
+    console.log("API running on :3001");
+});
