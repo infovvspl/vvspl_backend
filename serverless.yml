@@ -1,0 +1,15 @@
+service: contact-api
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: ap-south-1
+  environment:
+    SMTP_USER: info@vvspltech.com
+    SMTP_PASS: Ssvpl@2026
+
+functions:
+  app:
+    handler: lambda.handler
+    events:
+      - httpApi: '*'
