@@ -23,7 +23,23 @@ app.get("/", (req, res) => {
 
 app.post("/api/contact", async (req, res) => {
     try {
-        const { name, email, subject, message } = req.body;
+        const { name, email, subject, message,cfToken } = req.body;
+
+        if (!cfToken) {
+            return res.status(400).json({ ok: false, error: "Missing token" });
+        }
+
+        const verifyResponse = await fetch(`https://challenges.cloudflare.com/turnstile/v0/siteverify`, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: `secret=${process.env.CF_SECRET_KEY}&response=${cfToken}`,
+        });
+        const verifyData = await verifyResponse.json();
+
+        if (!verifyData.success) {
+            return res.status(400).json({ ok: false, error: "Cloudflare verification failed" });
+        }
+        
 
         if (!name || !email || !message) {
             return res.status(400).json({ ok: false, error: "Missing required fields" });
