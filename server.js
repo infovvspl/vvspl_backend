@@ -23,29 +23,13 @@ app.get("/", (req, res) => {
 
 app.post("/api/contact", async (req, res) => {
     try {
-        const { name, email, subject, message,cfToken } = req.body;
-
-        if (!cfToken) {
-            return res.status(400).json({ ok: false, error: "Missing token" });
-        }
-
-        const verifyResponse = await fetch(`https://challenges.cloudflare.com/turnstile/v0/siteverify`, {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: `secret=${process.env.CF_SECRET_KEY}&response=${cfToken}`,
-        });
-        const verifyData = await verifyResponse.json();
-
-        if (!verifyData.success) {
-            return res.status(400).json({ ok: false, error: "Cloudflare verification failed" });
-        }
-        
+        const { name, email, subject, message } = req.body;
 
         if (!name || !email || !message) {
             return res.status(400).json({ ok: false, error: "Missing required fields" });
         }
 
-        await transporter.sendMail({
+        const info = await transporter.sendMail({
             from: `"${name}" <${process.env.SMTP_USER}>`,
             replyTo: email,
             to: "info@vvspltech.com",
@@ -53,9 +37,12 @@ app.post("/api/contact", async (req, res) => {
             text: `Name: ${name}\nEmail: ${email}\n\n${message}`,
         });
 
-        res.json({ ok: true });
+        console.log("Email sent: ", info.messageId); // 🔹 Log success
+
+        res.status(200).json({ ok: true }); // Ensure 200 status
     } catch (e) {
-        res.status(500).json({ ok: false, error: "Failed to send" });
+        console.error("SendMail Error: ", e); // 🔹 Log exact error
+        res.status(500).json({ ok: false, error: e.message });
     }
 });
 
